@@ -17,5 +17,5 @@ Whatsapp Bot Blazz
 <b>npm i whatsapp-web.js</b><br>
 <b>npm i csv-parser</b><br>
 <b>npm i qrcode-terminal</b><br>
-<b>git clone https://github.com/setiaone-tech/whatsapp-blaz atau bisa langsung mendownloadnya</b><br>
+<b>git clone https://github.com/setiaone-tech/whatsapp-blaz atau bisa langsung mendownloadnya <a href="https://github.com/setiaone-tech/whatsapp-blaz/archive/main.zip">disini</a></b><br>
 <b>cd [PATH]/whatsapp-blaz/npm run start</b>
