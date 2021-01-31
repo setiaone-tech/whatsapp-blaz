@@ -4,6 +4,12 @@ const qrcode = require('qrcode-terminal');
 const csv = require('csv-parser');
 const results = [];
 const fs = require('fs');
+const random = require('random')
+const createCsvWriter = require('csv-writer').createArrayCsvWriter;
+const csvWriter = createCsvWriter({
+    header: ['NO', 'KONTAK'],
+    path: 'kontak.csv'
+});
 
 //membaca kontak dari file csv dan memasukannya ke dalam array
 fs.createReadStream('kontak.csv')
@@ -22,6 +28,8 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 
 //men-generate qr code web whatsapp di terminal
 const client = new Client({ puppeteer: { headless: true }, session: sessionCfg });
+client.initialize();
+
 client.on('qr', (qr) => {
     // Generate and scan this code with your phone
     console.log('QR RECEIVED', qr);
@@ -47,6 +55,7 @@ client.on('ready', () => {
 //fungsi whatsapp blast
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
+	//kirim pesan ke semua nomer yang berada di file kontak.csv
 	if (msg.body.startsWith('!sendto ')) {
 			// Direct send a new message to specific id
 			let bagi = msg.body.split(' ')[1];
@@ -58,8 +67,40 @@ client.on('message', async msg => {
 				let chat = await msg.getChat();
 				chat.sendSeen();
 				client.sendMessage(number, message);
-			};
+			}
 	}
+	//mencari kontak nomer secara random
+	else if (msg.body.startsWith('!cek ')) {
+		let number = msg.body.split(' ')[1];
+		number = number.includes('@c.us') ? number : `${number}@c.us`;
+		client.isRegisteredUser(number).then(function(isRegistered) {
+			if(isRegistered) {
+				client.sendMessage(msg.from, "*"+number+"*");
+			} else {
+				client.sendMessage(msg.from, "~"+number+"~");
+			}
+		})
+	}
+	else if (msg.body.startsWith('!random ')) {
+		let wadah = [];
+		let provider = msg.body.split(' ')[1];
+		let req = msg.body.split(' ')[2];
+		for(let i=0;i < req;i++) {
+			let akhir = random.int(10000000,99999999);
+			let number = provider+akhir+'@c.us';
+			client.isRegisteredUser(number).then(function(isRegistered) {
+				if(isRegistered) {
+					client.sendMessage(msg.from, "*"+number+"*");
+				} else {
+					client.sendMessage(msg.from, "~"+number+"~");
+				}
+			})
+			let data = [i,provider+akhir];
+			wadah.push(data);
+		}
+		csvWriter.writeRecords(wadah)
+			.then(() => {
+				client.sendMessage(msg.from, "Selesai!");
+		});
+		}
 });
-
-client.initialize();
